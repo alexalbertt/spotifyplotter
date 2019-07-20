@@ -11,7 +11,27 @@ from operator import itemgetter
 client_credentials_manager = SpotifyClientCredentials(client_id=client.client_id, client_secret=client.client_secret)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
-f = open("billboard_top_100.txt", "r")
+# pick the text file to load
+genre = input("Top 100, country, rap, or pop? (t, c, r or p)").lower()
+if genre == "t":
+    file_name = "billboard_top_100/billboard_top_100.txt"
+    title = "BillBoard Top 100 Artists"
+elif genre == "c":
+    file_name = "top_country/top_country.txt"
+    title = "Top Country Artists"
+elif genre == "r":
+    file_name = "top_rap/top_rap.txt"
+    title = "Top Rap Artists"
+elif genre == "p":
+    file_name = "top_pop/top_pop.txt"
+    title = "Top Pop Artists"
+else:
+    print("Error, not a genre.")
+
+#insert file name
+f = open(f"artist_txt_files/{file_name}", "r")
+
+# add each artist to list
 fl =f.readlines()
 artists = []
 for x in fl:
@@ -52,7 +72,7 @@ plt.style.use('dark_background')
 plt.hlines(y=my_range, xmin=0, xmax=np.array(list(artist_values_sorted.values())), color='limegreen')
 plt.plot(np.array(list(artist_values_sorted.values())), my_range, "og", markersize=3)
 plt.yticks(my_range, artist_values_sorted.keys())
-plt.title("Danceability Scores of BillBoard Top 100")
+plt.title(f"Danceability Scores of {title}")
 plt.ylabel("Artist")
 plt.xlabel("Danceability Score")
 plt.tick_params(axis='y', which='major', labelsize=4)
