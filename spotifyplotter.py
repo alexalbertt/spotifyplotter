@@ -13,26 +13,36 @@ sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 def txt_picker():
     # pick the text file to load
     while True:
+        feature = input("Display danceability, energy or loudness? (d, e or l)")
+        if feature == "d":
+            feature = "Danceability"
+        elif feature == "e":
+            feature = "Energy"
+        elif feature == "l":
+            feature = "Loudness"
+        else:
+            print("Error, not a type. Try again.")
+            pass
+
         genre = input("Top 100, country, rap, or pop? (t, c, r or p)").lower()
         if genre == "t":
             file_name = "billboard_top_100/billboard_top_100.txt"
             title = "BillBoard Top 100 Artists"
-            return title, file_name
+            return title, file_name, feature
         elif genre == "c":
             file_name = "top_country/top_country.txt"
             title = "Top Country Artists"
-            return title, file_name
+            return title, file_name, feature
         elif genre == "r":
             file_name = "top_rap/top_rap.txt"
             title = "Top Rap Artists"
-            return title, file_name
+            return title, file_name, feature
         elif genre == "p":
             file_name = "top_pop/top_pop.txt"
             title = "Top Pop Artists"
-            return title, file_name
+            return title, file_name, feature
         else:
             print("Error, not a genre. Try again.")
-
 
 def add_artists(file_name):
     #insert file name
@@ -45,10 +55,10 @@ def add_artists(file_name):
         artists.append(x.rstrip('\n'))
     return artists
 
-def get_dance(artists):
+def get_feature_scores(artists, feature):
     artist_values = {}
     for x in artists:
-        danceability_avg = 0
+        score_avg = 0
         try:
             results = sp.search(q=x, limit=20)
             tids = []
@@ -57,11 +67,11 @@ def get_dance(artists):
                 id = t['uri'].split(":")[2]
 
                 features = sp.audio_features(id)
-                danceability = round(features[0]['danceability'], 3)
-                danceability_avg += danceability
-            danceability_avg /= 20
-            print(x + ":", danceability_avg)
-            artist_values[x] = round(danceability_avg, 3)
+                score = round(features[0][feature.lower()], 3)
+                score_avg += score
+            score_avg /= 20
+            print(x + ":", score_avg)
+            artist_values[x] = round(score_avg, 3)
         except:
             print(x, "error")
     return(artist_values)
@@ -75,16 +85,16 @@ def sort_values(artist_values):
         artist_values_sorted[i[0]] = i[1]
     return artist_values_sorted
 
-def display_plot(artist_values_sorted, title):
+def display_plot(artist_values_sorted, title, feature):
     # change color and shape and size and edges
     my_range=range(1,len(artist_values_sorted)+1)
     plt.style.use('dark_background')
     plt.hlines(y=my_range, xmin=0, xmax=np.array(list(artist_values_sorted.values())), color='limegreen')
     plt.plot(np.array(list(artist_values_sorted.values())), my_range, "og", markersize=3)
     plt.yticks(my_range, artist_values_sorted.keys())
-    plt.title(f"Danceability Scores of {title}")
+    plt.title(f"{feature} Scores of {title}")
     plt.ylabel("Artist")
-    plt.xlabel("Danceability Score")
+    plt.xlabel(f"{feature} Score")
     plt.tick_params(axis='y', which='major', labelsize=4)
     plt.xlim(left=0, right=1)
     plt.margins(y=.01)
@@ -92,11 +102,11 @@ def display_plot(artist_values_sorted, title):
     plt.show()
 
 def main():
-    title, file_name = txt_picker()
+    title, file_name, feature = txt_picker()
     artists = add_artists(file_name)
-    artist_values = get_dance(artists)
+    artist_values = get_feature_scores(artists, feature)
     artist_values_sorted = sort_values(artist_values)
-    display_plot(artist_values_sorted, title)
+    display_plot(artist_values_sorted, title, feature)
 
 if __name__ == "__main__":
     main()
